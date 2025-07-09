@@ -3,33 +3,138 @@
 <head>
 <meta charset="utf-8" />
 <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
-<title>Web Bluetooth API Console</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, user-scalable=yes">
+<link href="style.css" rel="stylesheet" />
+<title>Sensor Logger Console</title>
+    <style>
+		html{
+            font-size: 100%;
+        }
+
+        body {
+            width: 90%;
+            max-width: 900px;
+            margin: 2em auto;
+            /*font: .9em/1.2 Arial, Helvetica, sans-serif;*/
+			font: .9em/1.2
+        }
+
+        .container > div {
+            border-radius: 5px;
+            padding: 10px;
+            background-color: rgb(207,232,220);
+            border: 2px solid cornflowerblue;
+        }
+    </style>
 </head>
  
 <body>
 <form name="js">
-<h1>Web Bluetooth API Console</h1>
+<h1>Sensor Logger Console</h1>
 <input type="button" value="接続" onclick="connect();"/> 
 <input type="button" value="切断" onclick="disconnect();" /> 
 <br />
 <input type="text" id="sendInput" />
 <input type="button" value="Send" onclick="SendButton_click();" />
-<br />
 
 <hr>
-    <p>外部データ</p>
-    <ul>
-        <li id="ex_data1">0</li>
-        <li id="ex_data2">0</li>
-        <li id="ex_data3">0</li>
-		<li id="ex_data4">0</li>
-		<li id="ex_data5">0</li>
-		<li id="ex_data6">0</li>
-		<li id="ex_data7">0</li>
-		<li id="ane_speed">0</li>
-		<li id="ane_temp">0</li>
-    </ul>
-	<input type="button" value="ゼロオフセット" onclick="ane_offset_click();"/> 
+<input type="button" value="SENSOR_Notify" onclick="NotifyButton_SENSOR_click();" />
+<input type="button" value="GPS_Notify" onclick="NotifyButton_GPS_click();" />
+<input type="button" value="EXTERNAL_Notify" onclick="NotifyButton_EXTERNAL_click();" />
+<input type="button" value="STATUS_Notify" onclick="NotifyButton_STATUS_click();" />
+
+<hr>
+<div class="container">
+	<div>
+		<p>加速度</p>
+		<ul>
+			<li id="accel_x">0</li>
+			<li id="accel_y">0</li>
+			<li id="accel_z">0</li>
+		</ul>
+	</div>
+	
+	<div>
+		<p>角速度</p>
+		<ul>
+			<li id="gyro_x">0</li>
+			<li id="gyro_y">0</li>
+			<li id="gyro_z">0</li>
+		</ul>
+	</div>
+
+	<div>
+		<p>姿勢角</p>
+		<ul>
+			<li id="pitch">0</li>
+			<li id="roll">0</li>
+			<li id="yaw">0</li>
+		</ul>
+	</div>
+
+	<div>
+		<p>地磁気</p>
+		<ul>
+			<li id="mag_x">0</li>
+			<li id="mag_y">0</li>
+			<li id="mag_z">0</li>
+		</ul>
+	</div>
+
+	<div>
+		<p>ステータス</p>
+		<ul>
+			<li id="sd_status">不明</li>
+			<li id="gps_status">不明</li>
+			<li id="battery">0</li>
+		</ul>
+	</div>
+
+	<div>
+		<p>GPS</p>
+		<ul>
+			<li id="latitude">0</li>
+			<li id="longitude">0</li>
+			<li id="gspeed">0</li>
+			<li id="heading">0</li>
+		</ul>
+	</div>
+
+	<div>
+		<p>外部データ</p>
+		<ul>
+			<li id="ex_data1">0</li>
+			<li id="ex_data2">0</li>
+			<li id="ex_data3">0</li>
+			<li id="ex_data4">0</li>
+			<li id="ex_data5">0</li>
+			<li id="ex_data6">0</li>
+			<li id="ex_data7">0</li>
+			<li id="ane_speed">0</li>
+			<li id="ane_temp">0</li>
+		</ul>
+		<input type="button" value="ゼロオフセット" onclick="ane_offset_click();"/> 
+	</div>
+
+	<div>
+		<p>その他</p>
+		<ul>
+			<li id="compass">0</li>
+			<li id="pressure">0</li>
+			<li id="altitude">0</li>
+		</ul>
+	</div>
+
+	<div>
+		<p>最大速度</p>
+		<ul>
+			<li id="gps_max">0</li>
+			<li id="ane_max">0</li>
+		</ul>
+		<p> <br> </p>
+		<input type="button" value="リセット" onclick="speed_reset_click();"/> 
+	</div>
+</div>
 </form>
 
 <script>
@@ -75,6 +180,9 @@
 	var ane_temp = 0;
 	var ane_offset = 0;
 
+	var gps_max = 0;
+	var ane_max = 0;
+
  
 	function connect() {
 	  navigator.bluetooth.requestDevice({
@@ -107,20 +215,23 @@
 	  })
 	  .then(chara => {
 		console.log("characteristic:", chara)
-		//alert("BLE接続が完了しました。");
+		alert("BLE接続が完了しました。");
 		/*characteristic = chara;
 		characteristic.startNotifications();
 		characteristic.addEventListener('characteristicvaluechanged',onAccelerometerValueChanged); */ 
 		
-		//chara[1].startNotifications();
-		//chara[2].startNotifications();
+		chara[1].startNotifications();
+		chara[2].startNotifications();
 		chara[3].startNotifications();
-		//chara[4].startNotifications();
+		chara[4].startNotifications();
 		
-		//chara[1].oncharacteristicvaluechanged = onSensorReadValueChanged;
-		//chara[2].oncharacteristicvaluechanged = onGPSReadValueChanged;
+		chara[1].oncharacteristicvaluechanged = onSensorReadValueChanged;
+		chara[2].oncharacteristicvaluechanged = onGPSReadValueChanged;
 		chara[3].oncharacteristicvaluechanged = onExternalReadValueChanged;
-		//chara[4].oncharacteristicvaluechanged = onStatusReadValueChanged;
+		chara[4].oncharacteristicvaluechanged = onStatusReadValueChanged;
+
+		setInterval(text_update_ex, 1000);
+		setInterval(text_update_gps, 1000);
 		
 	  })  
 	  .catch(error => {
@@ -142,7 +253,139 @@
 		//sendSerial(text + "\n");
 		})
     }
-	 	
+	
+	function NotifyButton_SENSOR_click(){
+		keyService.getCharacteristic(SENSOR_READ_CHARACTERISTIC_UUID)
+        .then(characteristic => {
+            characteristic.startNotifications();
+		})
+	}
+	
+	function NotifyButton_GPS_click(){
+		keyService.getCharacteristic(GPS_READ_CHARACTERISTIC_UUID)
+        .then(characteristic => {
+            characteristic.startNotifications();
+		})
+	}
+	
+	function NotifyButton_EXTERNAL_click(){
+		keyService.getCharacteristic(EXTERNAL_READ_CHARACTERISTIC_UUID)
+        .then(characteristic => {
+            characteristic.startNotifications();
+		})
+	}
+	
+	function NotifyButton_STATUS_click(){
+		keyService.getCharacteristic(STATUS_READ_CHARACTERISTIC_UUID)
+        .then(characteristic => {
+            characteristic.startNotifications();
+		})
+	}
+	 
+	function onSensorReadValueChanged(event) {
+		/*AcceleratorX = event.target.value.getUint16(0, true);
+		console.log('x:' + AcceleratorX);
+		document.js.x.value = AcceleratorX;
+
+		AcceleratorY = event.target.value.getUint16(2, true);
+		console.log('y:' + AcceleratorY);
+		document.js.y.value = AcceleratorY;
+
+		AcceleratorZ = event.target.value.getUint16(4, true);
+		console.log('z:' + AcceleratorZ);
+		document.js.z.value = AcceleratorZ;*/
+		
+		let dat = new DataView(event.target.value.buffer, 0);
+		
+		accel[0] = dat.getInt16(0, true) / 16384; // X加速度算出
+		accel[1] = dat.getInt16(2, true) / 16384; // Y加速度算出
+		accel[2] = dat.getInt16(4, true) / 16384; // Z加速度算出
+		
+		gyro[0] = dat.getInt16(6, true) / 131; // X角速度算出
+		gyro[1] = dat.getInt16(8, true) / 131; // Y角速度算出
+		gyro[2] = dat.getInt16(10, true) / 131; // Z角速度算出
+		
+		euler[0] = dat.getInt16(12, true) / 100; // ピッチ算出
+		euler[1] = dat.getInt16(14, true) / 100; // ロール算出
+		euler[2] = dat.getInt16(16, true) / 100; // ヨー算出
+		
+		imu_temp = dat.getInt16(18, true) / 10;
+		
+		pressure = dat.getInt32(20, true) / 100;
+		pres_temp = dat.getInt16(24, true) / 10;
+
+		altitude = (Math.pow(pressure_zero / pressure, 1 / 5.257) - 1) * (pres_temp + 273.15) / 0.0065;
+		
+		mag[0] = dat.getInt16(26, true) / 0.73; // X地磁気算出
+		mag[1] = dat.getInt16(28, true) / 0.73; // Y地磁気算出
+		mag[2] = dat.getInt16(30, true) / 0.73; // Z地磁気算出
+		
+		document.getElementById('accel_x').textContent = "x=" + String(accel[0].toFixed(2)) + "g";
+		document.getElementById('accel_y').textContent = "y=" + String(accel[1].toFixed(2)) + "g";
+		document.getElementById('accel_z').textContent = "z=" + String(accel[2].toFixed(2)) + "g";
+
+		document.getElementById('gyro_x').textContent = "x=" + String(gyro[0].toFixed(2)) + "deg/s";
+		document.getElementById('gyro_y').textContent = "y=" + String(gyro[1].toFixed(2)) + "deg/s";
+		document.getElementById('gyro_z').textContent = "z=" + String(gyro[2].toFixed(2)) + "deg/s";
+		
+		document.getElementById('pitch').textContent = "x=" + String(euler[0].toFixed(2)) + "deg";
+		document.getElementById('roll').textContent = "y=" + String(euler[1].toFixed(2)) + "deg";
+		document.getElementById('yaw').textContent = "z=" + String(euler[2].toFixed(2)) + "deg";
+		
+		document.getElementById('mag_x').textContent = "x=" + String(mag[0].toFixed(2)) + "mG";
+		document.getElementById('mag_y').textContent = "y=" + String(mag[1].toFixed(2)) + "mG";
+		document.getElementById('mag_z').textContent = "z=" + String(mag[2].toFixed(2)) + "mG";
+		
+		document.getElementById('pressure').textContent = "気圧=" + String(pressure.toFixed(2)) + "hPa";
+        document.getElementById('altitude').textContent = "高度=" + String(altitude.toFixed(1)) + "m";
+		
+		//方位角三次元計算
+		var m = Math.sqrt(mag[0] * mag[0] + mag[1] * mag[1] + mag[2] * mag[2]);
+		mag[0] /= m;
+		mag[1] /= m;
+		mag[2] /= m;
+		var hx = mag[1] * accel[2] - mag[2] * accel[1];
+		var hy = mag[2] * accel[0] - mag[0] * accel[2];
+		var hz = mag[0] * accel[1] - mag[1] * accel[0];
+		var h = Math.sqrt(hx * hx + hy * hy + hz * hz);
+
+		var rx = accel[1] * hz - accel[2] * hy;
+		var ry = accel[2] * hx - accel[0] * hz;
+		var rz = accel[0] * hy - accel[1] * hx;
+		var r = Math.sqrt(rx * rx + ry * ry + rz * rz);
+
+		var head = Math.atan2(rx / r, hx / h);
+		dat_decimal = head * 180 / Math.PI;
+		if (dat_decimal < 0)
+		{
+			dat_decimal += 360;
+		}
+		//compass_dat = Math.round(dat_decimal, 2, MidpointRounding.AwayFromZero);
+		compass_dat = dat_decimal;
+		
+		document.getElementById('compass').textContent = "方位=" + String(compass_dat.toFixed(1)) + "deg";
+
+	} 
+	
+	function onGPSReadValueChanged(event) {
+		let dat = new DataView(event.target.value.buffer, 0);
+		
+		latitude = dat.getInt32(0, true) / 10000000;
+		longitude = dat.getInt32(4, true) / 10000000;
+		gspeed = dat.getInt32(8, true) / 100;
+		heading = dat.getInt32(12, true) / 100000;
+
+		if(gps_max <= gspeed){
+			gps_max = gspeed;
+			document.getElementById('gps_max').textContent = "対地速度=" + String(gps_max.toFixed(2)) + "m/s";
+		}
+				
+		//document.getElementById('latitude').textContent = "緯度=" + String(latitude.toFixed(7));
+		//document.getElementById('longitude').textContent = "経度=" + String(longitude.toFixed(7));
+		//document.getElementById('gspeed').textContent = "速度=" + String(gspeed.toFixed(2)) + "m/s";
+		//document.getElementById('heading').textContent = "方角=" + String(heading.toFixed(1)) + "deg";
+	}
+	
 	function onExternalReadValueChanged(event) {
 		let dat = new DataView(event.target.value.buffer, 0);
 		
@@ -155,12 +398,18 @@
 		ex_data[6] = dat.getInt16(12, true);
 		
 		ane_temp = (ex_data[1] - 511) * 0.09765625;
-		d = 395.673 * Math.sqrt((ex_data[0]+ane_offset)*0.0676*(1.0+0.00366*ane_temp)/101325.0);
+		//d = 395.673 * Math.sqrt((ex_data[0]+ane_offset)*0.0676*(1.0+0.00366*ane_temp)/101325.0);
+		d = 395.673 * Math.sqrt(((ex_data[0]+ane_offset)*0.95)*0.0676*(1.0+0.00366*ane_temp)/101325.0);
 		if(d >= 1){
 			ane_speed = d;
 		}
 		else{
 			ane_speed = 0;
+		}
+
+		if(ane_max <= ane_speed){
+			ane_max = ane_speed;
+			document.getElementById('ane_max').textContent = "対気速度=" + String(ane_max.toFixed(2)) + "m/s";
 		}
 		
 		document.getElementById('ex_data1').textContent = String(ex_data[0]);
@@ -170,19 +419,72 @@
 		document.getElementById('ex_data5').textContent = String(ex_data[4]);
 		document.getElementById('ex_data6').textContent = String(ex_data[5]);
 		document.getElementById('ex_data7').textContent = String(ex_data[6]);
-		document.getElementById('ane_speed').textContent = "風速=" + String(ane_speed.toFixed(1)) + "m/s";
-		document.getElementById('ane_temp').textContent = "温度=" + String(ane_temp.toFixed(1)) + "℃";
+		//document.getElementById('ane_speed').textContent = "風速=" + String(ane_speed.toFixed(1)) + "m/s";
+		//document.getElementById('ane_temp').textContent = "温度=" + String(ane_temp.toFixed(1)) + "℃";
 	}
-		 
+	
+	function onStatusReadValueChanged(event) {
+		let dat = new DataView(event.target.value.buffer, 0);
+		let sdc_str, gps_str;
+
+		if (dat.getUint8(0) == 2)
+		{
+			sdc_str = "動作中";
+		}
+		else
+		{
+			sdc_str = "停止";
+		}
+
+		if (dat.getUint8(1) == 1)
+		{
+			gps_str = "補足中";
+		}
+		else if (dat.getUint8(1) == 2)
+		{
+			gps_str = "補足中（DGPS）";
+		}
+		else
+		{
+			gps_str = "未補足";
+		}
+
+		battery = dat.getInt16(2, false) / 1000;
+
+		document.getElementById('sd_status').textContent = "SDカード:" + sdc_str;
+		document.getElementById('gps_status').textContent = "GPS:" + gps_str;
+		document.getElementById('battery').textContent = "電源:" + String(battery.toFixed(2)) + "V";
+	}
+	 
 	function disconnect() {
 	  if (!keyDevice || !keyDevice.gatt.connected) return ;
 	  keyDevice.gatt.disconnect();
 	  alert("BLE接続を切断しました。")
+
+	  clearInterval(text_update_ex, 1000);
+	  clearInterval(text_update_gps, 1000);
 	}
 	
 	function ane_offset_click() {
 	  ane_offset = 0 - ex_data[0];
 	}
+
+	function speed_reset_click() {
+		gps_max = 0;
+		ane_max = 0;
+	}
+
+	const text_update_ex = function(){
+  		document.getElementById('ane_speed').textContent = "風速=" + String(ane_speed.toFixed(1)) + "m/s";
+		document.getElementById('ane_temp').textContent = "温度=" + String(ane_temp.toFixed(1)) + "℃";
+	};
+
+	const text_update_gps = function(){
+		document.getElementById('latitude').textContent = "緯度=" + String(latitude.toFixed(7));
+		document.getElementById('longitude').textContent = "経度=" + String(longitude.toFixed(7));
+		document.getElementById('gspeed').textContent = "速度=" + String(gspeed.toFixed(2)) + "m/s";
+		document.getElementById('heading').textContent = "方角=" + String(heading.toFixed(1)) + "deg";
+	};
  
 </script>    
 </body>
